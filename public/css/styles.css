@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F8F2;
+}
+::-webkit-scrollbar-thumb {
+  background: #A5D6A7;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #66BB6A;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

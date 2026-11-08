@@ -1,9 +1,51 @@
+<?php
+
+session_start();
+
+$error = '';
+
+if($_SERVER['REQUEST_METHOD'] === 'POST')
+{
+  require_once '../config/conexion.php';
+
+  $username = trim($_POST['username'] ?? '');
+  $password = $_POST['password'] ?? '';
+
+  $sql = "SELECT u.*, r.nombre_rol 
+          From usuarios u 
+          INNER JOIN roles r ON u.id_rol = r.id_rol
+          WHERE u.username = :username AND u.estado = 1";
+
+  $stmt = $pdo->prepare($sql);
+
+  $stmt->execute([':username' => $username]);
+  $usuario = $stmt->fetch();
+
+  if($usuario && password_verify($password, $usuario['password']))
+  {
+    $_SESSION['id_usuario'] = $usuario['id_usuario'];
+    $_SESSION['username'] = $usuario['username'];
+    $_SESSION['rol'] = $usuario['nombre_rol'];
+
+    header("Location: ../modules/gestion/index.php");
+    exit();
+  }
+
+  else
+  {
+    $error = "Nombre de usuario o contraseña incorrectos.";
+  }
+}
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hoja Verde — Acceso al Sistema</title>
+  <title>Acceso al Sistema</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="../public/css/styles.css">
@@ -16,8 +58,15 @@
         <i data-lucide="leaf" class="w-10 h-10"></i>
       </div>
       <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">Hoja Verde</h1>
-      <p class="text-xs font-semibold text-emerald-700 uppercase tracking-widest mt-1">Centro Naturista — Sistema de Control</p>
+      <p class="text-xs font-semibold text-emerald-700 uppercase tracking-widest mt-1">Centro Naturista</p>
     </div>
+
+    <?php if (!empty($error)): ?>
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs font-bold mb-4 flex items-center gap-2">
+        <i data-lucide="alert-circle" class="w-4 h-4 text-red-600 flex-shrink-0"></i>
+        <span><?php echo htmlspecialchars($error); ?></span>
+      </div>
+    <?php endif; ?>
 
     <form id="loginForm" action="login.php" method="POST" class="space-y-4">
       <div>

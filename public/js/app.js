@@ -9,11 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Componente interactivo para la gestión de medicamentos
-function appGestion() {
+function appGestion(nombre = 'Usuario', rol = 'Empleado') {
   return {
     currentUser: {
-      nombre: 'Carlos Pérez',
-      rol: 'Empleado' // Alternar con 'Gerente' según la sesión o prueba
+      nombre: nombre,
+      rol: rol
     },
 
     searchQuery: '',

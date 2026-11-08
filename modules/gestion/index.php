@@ -1,9 +1,18 @@
+<?php
+session_start();
+
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: ../../auth/login.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
-<html lang="es" x-data="appGestion()" x-cloak>
+<html lang="es" x-data="appGestion('<?php echo $_SESSION['username']; ?>', '<?php echo $_SESSION['rol']; ?>')" x-cloak>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centro Naturista Hoja Verde — Gestión de Medicamentos</title>
+  <title>Gestión de Medicamentos</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>

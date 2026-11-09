@@ -46,8 +46,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST')
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Acceso al Sistema</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../public/js/tailwind.js"></script>
+  <script src="../public/js/lucide.min.js"></script>
   <link rel="stylesheet" href="../public/css/styles.css">
 </head>
 <body class="bg-gradient-to-br from-[#144517] via-[#1B5E20] to-[#2E7D32] min-h-screen flex items-center justify-center p-4">

@@ -5,17 +5,35 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: ../../auth/login.php");
     exit();
 }
+
+require_once __DIR__ . '/../../config/conexion.php';
+
+$medicamentos = $pdo->query('SELECT * FROM medicamentos')->fetchAll();
+foreach ($medicamentos as &$medicamento) {
+    $medicamento['id_medicamento'] = (int) $medicamento['id_medicamento'];
+    $medicamento['precio'] = (float) $medicamento['precio'];
+    $medicamento['stock'] = (int) $medicamento['stock'];
+    $medicamento['estado'] = (int) $medicamento['estado'];
+}
+unset($medicamento);
+
+$jsonFlags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_THROW_ON_ERROR;
+$appGestionArgsJson = json_encode(
+    [$_SESSION['username'], $_SESSION['rol'], $medicamentos],
+    $jsonFlags
+);
+$appGestionArgsHtml = htmlspecialchars($appGestionArgsJson, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 ?>
 
 <!DOCTYPE html>
-<html lang="es" x-data="appGestion('<?php echo $_SESSION['username']; ?>', '<?php echo $_SESSION['rol']; ?>')" x-cloak>
+<html lang="es" x-data="appGestion(...<?php echo $appGestionArgsHtml; ?>)" x-cloak>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Medicamentos</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../../public/js/tailwind.js"></script>
+  <script defer src="../../public/js/alpine.min.js"></script>
+  <script src="../../public/js/lucide.min.js"></script>
   <link rel="stylesheet" href="../../public/css/styles.css">
 </head>
 <body class="bg-[#F9FBF9] min-h-screen text-slate-800 flex flex-col">
@@ -194,6 +212,8 @@ if (!isset($_SESSION['id_usuario'])) {
           </button>
         </div>
       </div>
+
+      <div x-show="statusError" x-text="statusError" role="alert" class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700"></div>
 
       <!-- Tabla CRUD -->
       <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
@@ -429,6 +449,7 @@ if (!isset($_SESSION['id_usuario'])) {
       </div>
 
       <form @submit.prevent="guardarMedicamento()" class="p-5 space-y-4">
+        <div x-show="saveError" x-text="saveError" role="alert" class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700"></div>
         
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -480,8 +501,10 @@ if (!isset($_SESSION['id_usuario'])) {
             Cancelar
           </button>
           <button type="submit"
+            :disabled="isSaving"
+            :class="isSaving ? 'opacity-60 cursor-wait' : ''"
             class="flex-1 py-2.5 rounded-xl bg-[#1B5E20] hover:bg-[#144517] text-white text-xs font-bold transition shadow-xs cursor-pointer">
-            <span x-text="isEditing ? 'Guardar Cambios' : 'Guardar Medicamento'"></span>
+            <span x-text="isSaving ? 'Guardando…' : (isEditing ? 'Guardar Cambios' : 'Guardar Medicamento')"></span>
           </button>
         </div>
       </form>

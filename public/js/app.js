@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Componente interactivo para la gestión de medicamentos
-function appGestion(nombre = 'Usuario', rol = 'Empleado') {
+function appGestion(nombre = 'Usuario', rol = 'Empleado', medicamentosIniciales = []) {
   return {
     currentUser: {
       nombre: nombre,
@@ -23,14 +23,12 @@ function appGestion(nombre = 'Usuario', rol = 'Empleado') {
     showModalDetalle: false,
     itemDetalle: null,
     isEditing: false,
+    isSaving: false,
+    saveError: '',
+    statusError: '',
+    changingStatusId: null,
 
-    // Semilla inicial basada en database.sql
-    medicamentos: [
-      { id_medicamento: 1, codigo_ref: 'NAT-001', codigo_ubicacion: 'EST-A-01', nombre: 'Extracto de Valeriana 60ml', laboratorio: 'Laboratorios BioNatura', descripcion: 'Sedante y relajante muscular para el insomnio', precio: 4.50, stock: 25, estado: 1 },
-      { id_medicamento: 2, codigo_ref: 'NAT-002', codigo_ubicacion: 'EST-A-03', nombre: 'Jarabe de Sábila y Miel 250ml', laboratorio: 'Herbal Medic', descripcion: 'Desinflamatorio gastrointestinal y regenerador gástrico', precio: 6.00, stock: 40, estado: 1 },
-      { id_medicamento: 3, codigo_ref: 'NAT-003', codigo_ubicacion: 'EST-B-02', nombre: 'Cápsulas de Moringa 500mg (60 caps)', laboratorio: 'Fitofarma C.A.', descripcion: 'Suplemento antioxidante y energizante natural', precio: 7.50, stock: 18, estado: 1 },
-      { id_medicamento: 4, codigo_ref: 'NAT-004', codigo_ubicacion: 'EST-C-01', nombre: 'Infusión de Toronjil y Manzanilla', laboratorio: 'Botánica El Edén', descripcion: 'Digestivo y calmante estomacal tradicional', precio: 2.80, stock: 50, estado: 1 },
-    ],
+    medicamentos: medicamentosIniciales,
 
     form: { id_medicamento: null, codigo_ref: '', codigo_ubicacion: '', nombre: '', laboratorio: '', descripcion: '', precio: '', stock: '' },
 
@@ -65,6 +63,7 @@ function appGestion(nombre = 'Usuario', rol = 'Empleado') {
 
     openModalCrear() {
       this.isEditing = false;
+      this.saveError = '';
       this.form = { id_medicamento: null, codigo_ref: '', codigo_ubicacion: '', nombre: '', laboratorio: '', descripcion: '', precio: '', stock: '' };
       this.showModal = true;
       this.$nextTick(() => lucide.createIcons());
@@ -72,6 +71,7 @@ function appGestion(nombre = 'Usuario', rol = 'Empleado') {
 
     openModalEditar(item) {
       this.isEditing = true;
+      this.saveError = '';
       this.form = { ...item };
       this.showModal = true;
       this.$nextTick(() => lucide.createIcons());
@@ -84,28 +84,89 @@ function appGestion(nombre = 'Usuario', rol = 'Empleado') {
       setTimeout(() => lucide.createIcons(), 50);
     },
 
-    guardarMedicamento() {
-      if (this.isEditing) {
-        const index = this.medicamentos.findIndex(m => m.id_medicamento === this.form.id_medicamento);
-        if (index !== -1) {
-          this.medicamentos[index] = { ...this.form };
+    async guardarMedicamento() {
+      if (this.isSaving) return;
+      this.isSaving = true;
+      this.saveError = '';
+
+      try {
+        const datos = new URLSearchParams();
+        if (this.isEditing) {
+          datos.set('id_medicamento', this.form.id_medicamento);
         }
-      } else {
-        this.medicamentos.push({
-          id_medicamento: Date.now(),
-          ...this.form,
-          estado: 1
+        ['codigo_ref', 'codigo_ubicacion', 'nombre', 'laboratorio', 'descripcion', 'precio', 'stock']
+          .forEach(campo => datos.set(campo, this.form[campo] ?? ''));
+        const respuesta = await fetch(this.isEditing ? 'editar.php' : 'crear.php', {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: datos
         });
+        let resultado;
+        try {
+          resultado = await respuesta.json();
+        } catch {
+          throw new Error('El servidor devolvió una respuesta inválida.');
+        }
+        if (!respuesta.ok || !resultado.success) {
+          throw new Error(resultado.message || 'No se pudo guardar el medicamento.');
+        }
+
+        if (this.isEditing) {
+          const index = this.medicamentos.findIndex(m => m.id_medicamento === resultado.medicamento.id_medicamento);
+          if (index === -1) {
+            throw new Error('El medicamento actualizado no está en la lista.');
+          }
+          this.medicamentos.splice(index, 1, resultado.medicamento);
+        } else {
+          this.medicamentos.push(resultado.medicamento);
+        }
+        this.showModal = false;
+        this.$nextTick(() => lucide.createIcons());
+      } catch (error) {
+        this.saveError = error.message || 'No se pudo guardar el medicamento.';
+      } finally {
+        this.isSaving = false;
       }
-      this.showModal = false;
-      this.$nextTick(() => lucide.createIcons());
     },
 
-    toggleBorradoLogico(item) {
+    async toggleBorradoLogico(item) {
       const accion = item.estado === 1 ? 'inactivar' : 'restaurar';
-      if (confirm(`¿Estás seguro de que deseas ${accion} el medicamento "${item.nombre}"?`)) {
-        item.estado = item.estado === 1 ? 0 : 1;
+      if (this.changingStatusId !== null || !confirm(`¿Estás seguro de que deseas ${accion} el medicamento "${item.nombre}"?`)) {
+        return;
+      }
+
+      this.changingStatusId = item.id_medicamento;
+      this.statusError = '';
+      try {
+        const datos = new URLSearchParams({
+          id_medicamento: String(item.id_medicamento),
+          estado: String(item.estado === 1 ? 0 : 1)
+        });
+        const respuesta = await fetch('eliminar.php', {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: datos
+        });
+        let resultado;
+        try {
+          resultado = await respuesta.json();
+        } catch {
+          throw new Error('El servidor devolvió una respuesta inválida.');
+        }
+        if (!respuesta.ok || !resultado.success) {
+          throw new Error(resultado.message || 'No se pudo cambiar el estado del medicamento.');
+        }
+
+        const index = this.medicamentos.findIndex(m => m.id_medicamento === resultado.medicamento.id_medicamento);
+        if (index === -1) {
+          throw new Error('El medicamento actualizado no está en la lista.');
+        }
+        this.medicamentos.splice(index, 1, resultado.medicamento);
         this.$nextTick(() => lucide.createIcons());
+      } catch (error) {
+        this.statusError = error.message || 'No se pudo cambiar el estado del medicamento.';
+      } finally {
+        this.changingStatusId = null;
       }
     },
 

@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Centro Naturista Hoja Verde</title>
   <!-- Tailwind & Fuentes -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../../public/js/tailwind.js"></script>
+  <script defer src="../../public/js/alpine.min.js"></script>
+  <script src="../../public/js/lucide.min.js"></script>
   <link rel="stylesheet" href="../../public/css/styles.css">
 </head>
 <body class="bg-[#F9FBF9] min-h-screen text-slate-800 flex flex-col">

@@ -59,11 +59,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST')
   <div class="relative bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] hover:shadow-[0_35px_70px_-15px_rgba(0,0,0,0.5)] w-full max-w-md p-8 sm:p-10 border border-white/60 hover:border-emerald-300/60 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:scale-[1.01]">
     
     <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/60 text-[#1B5E20] mb-4 shadow-sm border border-emerald-200/50">
-        <i data-lucide="leaf" class="w-10 h-10 text-emerald-700"></i>
+      <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-[#0D2E10] p-2 shadow-xl border border-emerald-500/30 mb-4 transition duration-300 hover:scale-105">
+        <img src="../public/img/logo_oficial.png" alt="Logo Oficial Hoja Verde" class="w-full h-full object-contain">
       </div>
       <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">Hoja Verde</h1>
-      <p class="text-xs font-bold text-emerald-700 uppercase tracking-widest mt-1">Centro Naturista</p>
+      <p class="text-xs font-bold text-emerald-700 uppercase tracking-widest mt-1">Centro Holístico Seidel</p>
     </div>
 
     <?php if (!empty($error)): ?>

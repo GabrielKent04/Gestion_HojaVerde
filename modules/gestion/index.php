@@ -39,6 +39,34 @@ $appGestionArgsHtml = htmlspecialchars($appGestionArgsJson, ENT_QUOTES | ENT_SUB
 </head>
 <body class="bg-[#F9FBF9] min-h-screen text-slate-800 flex flex-col">
 
+  <!-- Preloader de Bienvenida / Transición Suave -->
+  <div id="pageLoader" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-br from-[#0D2E10] via-[#144517] to-[#1B5E20] text-white transition-opacity duration-500 ease-out">
+    <div class="relative flex flex-col items-center">
+      <!-- Glow de fondo -->
+      <div class="absolute w-44 h-44 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none"></div>
+      
+      <!-- Icono de Hoja Verde -->
+      <div class="relative bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-3xl shadow-2xl mb-4">
+        <svg class="w-10 h-10 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+        </svg>
+      </div>
+      
+      <h2 class="text-xl font-black tracking-wider uppercase">Hoja Verde</h2>
+      <p class="text-[11px] text-emerald-300 font-bold uppercase tracking-widest mt-1">Centro Naturista</p>
+      
+      <!-- Spinner sutil -->
+      <div class="flex items-center gap-2.5 mt-6 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+        <svg class="animate-spin h-3.5 w-3.5 text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-xs font-medium text-emerald-100">Cargando inventario...</span>
+      </div>
+    </div>
+  </div>
+
   <!-- TOP BAR -->
   <header class="bg-[#144517] border-b border-emerald-800/60 shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-[70px]">
@@ -70,29 +98,42 @@ $appGestionArgsHtml = htmlspecialchars($appGestionArgsJson, ENT_QUOTES | ENT_SUB
     </div>
   </header>
 
-  <!-- BARRA SUPERIOR DE OPCIONES (Superficial para Gerente) -->
-  <template x-if="currentUser.rol === 'Gerente'">
-    <nav class="bg-white border-b border-slate-200 shadow-2xs sticky top-[70px] z-40">
-      <div class="max-w-7xl mx-auto flex items-center gap-1 px-4 sm:px-6 overflow-x-auto text-xs sm:text-sm">
-        <a href="#" @click.prevent class="flex items-center gap-2 px-4 py-3 border-b-2 border-emerald-700 text-emerald-800 font-bold whitespace-nowrap">
-          <i data-lucide="package" class="w-4 h-4"></i>
-          <span>Inventario</span>
-        </a>
-        <a href="#" @click.prevent class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition whitespace-nowrap cursor-pointer">
-          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
-          <span>Reportes</span>
-        </a>
-        <a href="#" @click.prevent class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition whitespace-nowrap cursor-pointer">
-          <i data-lucide="users" class="w-4 h-4"></i>
-          <span>Usuarios</span>
-        </a>
-        <a href="#" @click.prevent class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition whitespace-nowrap cursor-pointer">
-          <i data-lucide="landmark" class="w-4 h-4"></i>
-          <span>Tasa BCV</span>
-        </a>
-      </div>
-    </nav>
-  </template>
+  <!-- BARRA SUPERIOR DE NAVEGACIÓN (Punto de Venta e Inventario para ambos roles, opciones extra para Gerente) -->
+  <nav class="bg-white border-b border-slate-200 shadow-2xs sticky top-[70px] z-40">
+    <div class="max-w-7xl mx-auto flex items-center gap-1 px-4 sm:px-6 overflow-x-auto text-xs sm:text-sm">
+      
+      <!-- 1. Punto de Venta (Visible para Empleado y Gerente, antes de Inventario) -->
+      <a href="#" @click.prevent class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition whitespace-nowrap cursor-pointer">
+        <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+        <span>Punto de Venta</span>
+      </a>
+
+      <!-- 2. Inventario (Opción activa por defecto para ambos roles) -->
+      <a href="#" @click.prevent class="flex items-center gap-2 px-4 py-3 border-b-2 border-emerald-700 text-emerald-800 font-bold whitespace-nowrap">
+        <i data-lucide="package" class="w-4 h-4"></i>
+        <span>Inventario</span>
+      </a>
+
+      <!-- 3. Opciones Exclusivas del Gerente (Reportes, Usuarios, Tasa BCV) -->
+      <template x-if="currentUser.rol === 'Gerente'">
+        <div class="flex items-center gap-1">
+          <a href="#" @click.prevent class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition whitespace-nowrap cursor-pointer">
+            <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+            <span>Reportes</span>
+          </a>
+          <a href="#" @click.prevent class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition whitespace-nowrap cursor-pointer">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            <span>Usuarios</span>
+          </a>
+          <a href="#" @click.prevent class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition whitespace-nowrap cursor-pointer">
+            <i data-lucide="landmark" class="w-4 h-4"></i>
+            <span>Tasa BCV</span>
+          </a>
+        </div>
+      </template>
+
+    </div>
+  </nav>
 
   <!-- CONTENIDO -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
@@ -188,7 +229,7 @@ $appGestionArgsHtml = htmlspecialchars($appGestionArgsJson, ENT_QUOTES | ENT_SUB
         <div class="flex items-center gap-2 flex-wrap justify-end">
           <!-- Botón PDF (Solo Gerente) -->
           <template x-if="currentUser.rol === 'Gerente'">
-            <a href="../../reports/reporte.php" target="_blank"
+            <a :href="'../../reports/reporte.php' + (selectedLab ? '?laboratorio=' + encodeURIComponent(selectedLab) : '')" target="_blank"
               class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-xs">
               <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i>
               <span>Reporte PDF</span>
@@ -293,7 +334,7 @@ $appGestionArgsHtml = htmlspecialchars($appGestionArgsJson, ENT_QUOTES | ENT_SUB
 
   </main>
 
-  <!-- MODAL: DETALLE DEL MEDICAMENTO -->
+  <!-- MODAL: DETALLE DEL MEDICAMENTO (FICHA TÉCNICA BOTÁNICA) -->
   <div 
     x-show="showModalDetalle" 
     x-transition.opacity 
@@ -302,126 +343,159 @@ $appGestionArgsHtml = htmlspecialchars($appGestionArgsJson, ENT_QUOTES | ENT_SUB
   >
     <template x-if="itemDetalle">
       <div 
-        class="bg-white rounded-2xl shadow-xl w-full max-w-lg border border-slate-200/90 overflow-hidden" 
+        class="bg-[#0D2E10] rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-emerald-900/40 transform transition-all" 
         @click.stop
       >
-        <!-- Cuerpo superior del modal -->
-        <div class="p-6">
+        <!-- Cabecera Hero Botánica con Gradiente Hoja Verde -->
+        <div class="bg-gradient-to-br from-[#0D2E10] via-[#144517] to-[#1B5E20] rounded-t-3xl p-6 text-white relative overflow-hidden">
           
-          <!-- Fila 1: Laboratorio + Código a la izquierda | Badge Activo + Cerrar a la derecha -->
-          <div class="flex items-center justify-between gap-4 mb-3">
-            <div class="flex items-center gap-2 min-w-0">
+          <!-- Brillo ambiental decorativo en la cabecera -->
+          <div class="absolute -right-8 -top-8 w-36 h-36 bg-emerald-400/15 rounded-full blur-2xl pointer-events-none"></div>
+
+          <!-- Fila superior: Laboratorio, Código y Estado -->
+          <div class="flex items-center justify-between gap-3 mb-4 relative z-10">
+            <div class="flex items-center gap-2 min-w-0 flex-wrap">
               <span 
-                class="text-xs font-bold text-emerald-700 uppercase tracking-wider truncate" 
+                class="text-[11px] font-extrabold text-emerald-200 bg-emerald-950/60 border border-emerald-400/30 px-3 py-1 rounded-full uppercase tracking-wider truncate shadow-2xs" 
                 x-text="itemDetalle.laboratorio"
               ></span>
-              <span class="text-slate-300">•</span>
               <span 
-                class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md shrink-0" 
-                style="font-variant-numeric: normal; font-family: inherit;"
+                class="text-[11px] font-bold text-white bg-white/20 px-3 py-1 rounded-full border border-white/30 tracking-wider shadow-2xs" 
                 x-text="itemDetalle.codigo_ref"
               ></span>
             </div>
 
-            <div class="flex items-center gap-2.5 shrink-0">
+            <div class="flex items-center gap-2 shrink-0">
               <span 
-                :class="itemDetalle.estado === 1 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-slate-100 text-slate-600 border-slate-200'" 
-                class="text-xs px-2.5 py-0.5 rounded-full font-medium border inline-flex items-center gap-1.5"
+                :class="itemDetalle.estado === 1 ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40' : 'bg-rose-500/25 text-rose-200 border-rose-400/40'" 
+                class="text-xs px-2.5 py-1 rounded-full font-bold border inline-flex items-center gap-1.5 backdrop-blur-xs shadow-2xs"
               >
-                <span class="w-1.5 h-1.5 rounded-full" :class="itemDetalle.estado === 1 ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+                <span class="w-1.5 h-1.5 rounded-full" :class="itemDetalle.estado === 1 ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'"></span>
                 <span x-text="itemDetalle.estado === 1 ? 'Activo' : 'Inactivo'"></span>
               </span>
 
               <button 
                 @click="showModalDetalle = false" 
-                class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg p-1 transition cursor-pointer" 
-                title="Cerrar"
+                class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1.5 transition cursor-pointer" 
+                title="Cerrar Ficha"
               >
                 <i data-lucide="x" class="w-4 h-4"></i>
               </button>
             </div>
           </div>
 
-          <!-- Fila 2: Icono + Nombre del Medicamento (a todo el ancho disponible) -->
-          <div class="flex items-center gap-3.5 mb-6">
-            <div class="w-11 h-11 rounded-xl bg-emerald-900/5 border border-emerald-900/10 flex items-center justify-center text-emerald-700 shrink-0">
-              <i data-lucide="leaf" class="w-5 h-5"></i>
+          <!-- Fila de Título Principal con Icono de Hoja -->
+          <div class="flex items-center gap-4 relative z-10">
+            <div class="w-12 h-12 rounded-2xl bg-white/15 border border-white/25 backdrop-blur-md flex items-center justify-center text-emerald-300 shrink-0 shadow-inner">
+              <i data-lucide="leaf" class="w-6 h-6 text-emerald-300"></i>
             </div>
-            <h3 
-              class="text-xl font-bold text-slate-900 leading-snug" 
-              x-text="itemDetalle.nombre || itemDetalle.medicamento"
-            ></h3>
+            <div>
+              <span class="text-[11px] font-extrabold text-emerald-300 uppercase tracking-widest block mb-0.5">Ficha Técnica Oficial</span>
+              <h3 
+                class="text-xl sm:text-2xl font-black text-white leading-tight tracking-tight drop-shadow-xs" 
+                x-text="itemDetalle.nombre || itemDetalle.medicamento"
+              ></h3>
+            </div>
           </div>
+        </div>
 
+        <!-- Cuerpo de Métricas y Prospecto -->
+        <div class="p-6 space-y-4 bg-white">
+          
           <!-- Grid de 3 tarjetas de métricas -->
-          <div class="grid grid-cols-3 gap-3 mb-5">
+          <div class="grid grid-cols-3 gap-3">
             
             <!-- Ubicación -->
-            <div class="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5">
-              <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
-                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i>
+            <div class="bg-white border-2 border-slate-200/90 rounded-2xl p-3.5 flex flex-col justify-between shadow-2xs">
+              <div class="flex items-center gap-1.5 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-700"></i>
                 <span>Ubicación</span>
               </div>
               <div 
-                class="text-base font-bold text-slate-900 mt-1.5" 
-                style="font-variant-numeric: normal; font-family: inherit;"
+                class="text-base font-black text-slate-900 mt-2 tracking-tight" 
                 x-text="itemDetalle.ubicacion || itemDetalle.codigo_ubicacion"
               ></div>
-              <div class="text-xs text-slate-500 mt-0.5">Estante físico</div>
+              <span class="text-xs text-slate-600 font-semibold mt-0.5">Estante físico</span>
             </div>
 
             <!-- Existencias -->
-            <div class="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5">
-              <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
-                <i data-lucide="package" class="w-3.5 h-3.5 text-slate-400"></i>
-                <span>Existencias</span>
+            <div class="bg-white border-2 border-slate-200/90 rounded-2xl p-3.5 flex flex-col justify-between shadow-2xs">
+              <div class="flex items-center gap-1.5 text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+                <i data-lucide="package" class="w-3.5 h-3.5 text-emerald-700"></i>
+                <span>Stock</span>
               </div>
-              <div class="mt-1.5 flex items-baseline gap-1">
-                <span class="text-base font-bold text-slate-900" x-text="itemDetalle.stock ?? itemDetalle.existencias"></span>
-                <span class="text-xs font-medium text-slate-500">uds</span>
+              <div class="mt-2 flex items-baseline gap-1">
+                <span class="text-base font-black text-slate-900" x-text="itemDetalle.stock ?? itemDetalle.existencias"></span>
+                <span class="text-xs font-bold text-slate-700">uds</span>
               </div>
-              <div 
-                class="text-xs font-medium mt-0.5"
-                :class="(itemDetalle.stock ?? itemDetalle.existencias) > 0 ? 'text-emerald-600' : 'text-rose-600'"
-                x-text="(itemDetalle.stock ?? itemDetalle.existencias) > 0 ? 'Disponible' : 'Agotado'"
-              ></div>
+              <div>
+                <span 
+                  class="text-[10px] font-black px-2 py-0.5 rounded-md inline-block border"
+                  :class="(itemDetalle.stock ?? itemDetalle.existencias) > 0 ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-rose-100 text-rose-900 border-rose-300'"
+                  x-text="(itemDetalle.stock ?? itemDetalle.existencias) > 0 ? 'Disponible' : 'Agotado'"
+                ></span>
+              </div>
             </div>
 
             <!-- Precio Unitario -->
-            <div class="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5">
-              <div class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
-                <i data-lucide="tag" class="w-3.5 h-3.5 text-slate-400"></i>
+            <div class="bg-emerald-50/70 border-2 border-emerald-300/80 rounded-2xl p-3.5 flex flex-col justify-between shadow-2xs">
+              <div class="flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-950 uppercase tracking-wider">
+                <i data-lucide="tag" class="w-3.5 h-3.5 text-emerald-700"></i>
                 <span>Precio Unit.</span>
               </div>
               <div 
-                class="text-base font-bold text-emerald-600 mt-1.5" 
+                class="text-lg font-black text-emerald-900 mt-2" 
                 x-text="'$' + Number(itemDetalle.precio).toFixed(2)"
               ></div>
-              <div class="text-xs text-slate-500 mt-0.5">Ref. USD</div>
+              <span class="text-xs text-emerald-800 font-bold mt-0.5">Ref. USD</span>
             </div>
 
           </div>
 
-          <!-- Indicaciones Terapéuticas -->
-          <div class="bg-slate-50/50 rounded-xl p-3.5 border border-slate-100">
-            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-              Indicaciones Terapéuticas
+          <!-- Indicaciones Terapéuticas (Estilo Prospecto Médico con Alto Contraste) -->
+          <div class="bg-emerald-50/40 rounded-2xl p-4 border-2 border-emerald-200/80">
+            <div class="flex items-center gap-2 text-xs font-black text-emerald-950 uppercase tracking-wider mb-2">
+              <i data-lucide="file-text" class="w-4 h-4 text-emerald-800"></i>
+              <span>Propiedades e Indicaciones Terapéuticas</span>
             </div>
             <p 
-              class="text-sm text-slate-700 leading-relaxed" 
-              x-text="itemDetalle.indicaciones || itemDetalle.descripcion || 'Sin indicaciones registradas.'"
+              class="text-sm text-slate-900 font-medium leading-relaxed" 
+              x-text="itemDetalle.indicaciones || itemDetalle.descripcion || 'Sin indicaciones terapéuticas registradas en el catálogo.'"
             ></p>
           </div>
 
         </div>
 
-        <!-- Footer integrado a todo el ancho -->
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between">
-          <span class="text-sm font-medium text-slate-600">Valor total en inventario</span>
-          <span 
-            class="text-base font-bold text-slate-900" 
-            x-text="'$' + ((Number(itemDetalle.stock ?? itemDetalle.existencias) || 0) * (Number(itemDetalle.precio) || 0)).toFixed(2)"
-          ></span>
+        <!-- Footer integrado con Valor Total y Botones de Acción -->
+        <div class="px-6 py-4 bg-slate-100/90 border-t border-slate-200 flex items-center justify-between gap-4 rounded-b-3xl">
+          <div>
+            <span class="text-xs font-extrabold text-slate-700 uppercase tracking-wider block mb-0.5">Valor Total en Almacén</span>
+            <span 
+              class="text-xl font-black text-[#144517]" 
+              x-text="'$' + ((Number(itemDetalle.stock ?? itemDetalle.existencias) || 0) * (Number(itemDetalle.precio) || 0)).toFixed(2)"
+            ></span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button 
+              type="button"
+              x-show="currentUser.rol === 'Gerente'"
+              @click="showModalDetalle = false; openModalEditar(itemDetalle)"
+              class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#1B5E20] hover:bg-[#144517] transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+              title="Editar este medicamento"
+            >
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+              <span>Editar</span>
+            </button>
+
+            <button 
+              type="button"
+              @click="showModalDetalle = false" 
+              class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-800 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition shadow-xs cursor-pointer"
+            >
+              Cerrar Ficha
+            </button>
+          </div>
         </div>
 
       </div>
@@ -472,9 +546,31 @@ $appGestionArgsHtml = htmlspecialchars($appGestionArgsJson, ENT_QUOTES | ENT_SUB
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">Laboratorio</label>
-          <input x-model="form.laboratorio" type="text" required placeholder="Ej: Laboratorios BioNatura"
-            class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-xs sm:text-sm focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/10 outline-none">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Laboratorio Proveedor</label>
+          <div class="relative">
+            <select x-model="form.laboratorio" required
+              class="w-full pl-3 pr-9 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-xs sm:text-sm focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/10 outline-none appearance-none cursor-pointer text-slate-800 font-medium">
+              <option value="" disabled>Seleccione un laboratorio naturista...</option>
+              
+              <template x-if="form.laboratorio && !['Laboratorios BioNatura', 'Herbal Medic', 'Fitofarma C.A.', 'Botánica El Edén', 'Laboratorios Naturasol', 'Phytomedic de Venezuela', 'Laboratorio Botánico Vida Sana', 'BioHerbal Internacional', 'Farmacia Botánica San Martín', 'Hierbas & Salud C.A.'].includes(form.laboratorio)">
+                <option :value="form.laboratorio" x-text="form.laboratorio" selected></option>
+              </template>
+
+              <option value="BioHerbal Internacional">BioHerbal Internacional</option>
+              <option value="Botánica El Edén">Botánica El Edén</option>
+              <option value="Farmacia Botánica San Martín">Farmacia Botánica San Martín</option>
+              <option value="Fitofarma C.A.">Fitofarma C.A.</option>
+              <option value="Herbal Medic">Herbal Medic</option>
+              <option value="Hierbas & Salud C.A.">Hierbas & Salud C.A.</option>
+              <option value="Laboratorio Botánico Vida Sana">Laboratorio Botánico Vida Sana</option>
+              <option value="Laboratorios BioNatura">Laboratorios BioNatura</option>
+              <option value="Laboratorios Naturasol">Laboratorios Naturasol</option>
+              <option value="Phytomedic de Venezuela">Phytomedic de Venezuela</option>
+            </select>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+              <i data-lucide="chevron-down" class="w-4 h-4"></i>
+            </span>
+          </div>
         </div>
 
         <div>
@@ -517,5 +613,19 @@ $appGestionArgsHtml = htmlspecialchars($appGestionArgsJson, ENT_QUOTES | ENT_SUB
   </footer>
 
   <script src="../../public/js/app.js?v=<?php echo time(); ?>"></script>
+  <script>
+    // Transición de salida suave para el Preloader (600ms de carga perceptual)
+    window.addEventListener('DOMContentLoaded', () => {
+      const loader = document.getElementById('pageLoader');
+      if (loader) {
+        setTimeout(() => {
+          loader.classList.add('opacity-0', 'pointer-events-none');
+          setTimeout(() => {
+            loader.remove();
+          }, 500);
+        }, 600);
+      }
+    });
+  </script>
 </body>
 </html>

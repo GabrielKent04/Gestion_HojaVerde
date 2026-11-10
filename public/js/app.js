@@ -111,6 +111,7 @@ function appGestion(nombre = 'Usuario', rol = 'Empleado', medicamentosIniciales 
           throw new Error(resultado.message || 'No se pudo guardar el medicamento.');
         }
 
+        const fueEdicion = this.isEditing;
         if (this.isEditing) {
           const index = this.medicamentos.findIndex(m => m.id_medicamento === resultado.medicamento.id_medicamento);
           if (index === -1) {
@@ -122,6 +123,15 @@ function appGestion(nombre = 'Usuario', rol = 'Empleado', medicamentosIniciales 
         }
         this.showModal = false;
         this.$nextTick(() => lucide.createIcons());
+
+        // Aviso nativo del navegador
+        setTimeout(() => {
+          if (fueEdicion) {
+            alert('¡Medicamento editado exitosamente!');
+          } else {
+            alert('¡Medicamento agregado exitosamente!');
+          }
+        }, 80);
       } catch (error) {
         this.saveError = error.message || 'No se pudo guardar el medicamento.';
       } finally {
@@ -163,6 +173,15 @@ function appGestion(nombre = 'Usuario', rol = 'Empleado', medicamentosIniciales 
         }
         this.medicamentos.splice(index, 1, resultado.medicamento);
         this.$nextTick(() => lucide.createIcons());
+
+        // Aviso nativo del navegador
+        setTimeout(() => {
+          if (resultado.medicamento.estado === 0) {
+            alert('¡Medicamento inhabilitado exitosamente!');
+          } else {
+            alert('¡Medicamento restaurado exitosamente!');
+          }
+        }, 80);
       } catch (error) {
         this.statusError = error.message || 'No se pudo cambiar el estado del medicamento.';
       } finally {
